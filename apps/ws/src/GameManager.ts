@@ -1,10 +1,11 @@
-import { Bet, GameState, Number } from "./types";
+import { Bet, GameState, Number } from "@repo/common/types";
+import { UserManager } from "./UserManager";
 
 export class GameManager{
     state : GameState = GameState.GameOver;
     bets : Bet[] = [];
     private static _instance : GameManager;
-    private lastWinner : Number = Number.Zero;
+    private _lastWinner : Number = Number.Zero;
     private constructor(){
 
     }
@@ -30,12 +31,33 @@ export class GameManager{
         return false;
     }
 
+    //admin will use these
     public start(){
         this.state = GameState.CanBet;
+        UserManager.getInstance().broadcast({
+            type : "start-game"
+        })
+    }
+
+    stopBets(){
+        this.state = GameState.CantBet;
+        UserManager.getInstance().broadcast({
+            type : "stop-bets"
+        })
     }
 
     public end(output : Number){
-        this.lastWinner = output;
+        this._lastWinner = output;
+        this.bets.forEach(bet=>{
+            if(bet.number === output){
+                // user won
+                UserManager.getInstance().won(bet.id , bet.amount , output);
+            }else{
+                UserManager.getInstance().lost(bet.id , bet.amount , output);
+            }
+        });
         this.state = GameState.GameOver;
+        UserManager.getInstance().flush(output);
+        this.bets = [];
     }
 }
