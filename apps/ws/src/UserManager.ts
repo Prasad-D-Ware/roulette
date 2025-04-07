@@ -53,18 +53,18 @@ export class UserManager {
         })
     }
 
-    won(id : number , amount : number , output : Number){
-        this._users[id]?.won(amount , output);
+    won(id : number , amount : number , output : Number, winners : String[]){
+        this._users[id]?.won(amount , output, winners);
     }
 
     lost(id : number , amount : number , output : Number){
         this._users[id]?.lost(amount , output);
     }
 
-    flush(output : Number){
+    flush(output : Number,winners : String[]){
         Object.keys(this._users).forEach((userId)=>{
             const user = this._users[userId] as User;
-            user.flush(output);
+            user.flush(output,winners);
         })
     }
 

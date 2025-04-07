@@ -28,26 +28,26 @@ export class User {
             try {
                 const message : IncommingMessage = JSON.parse(data);
                 if(message.type === "bet"){
-                    console.log("user bet")
+                    // console.log("user bet")
                     if(GameManager.getInstance().state === GameState.CanBet){
                         this.bet(message.clientId , message.amount , message.number);
                     }
                 }
                 if(this.isAdmin && message.type === "start-game"){
-                    console.log("start bet")
+                    // console.log("start bet")
                     if(GameManager.getInstance().state === GameState.GameOver){
                         GameManager.getInstance().start();
                     }
                 }
                 if(this.isAdmin && message.type === "end-game"){
-                    console.log("end game")
+                    // console.log("end game")
                     if(GameManager.getInstance().state === GameState.CantBet){
                         GameManager.getInstance().end(message.output);
                     }
                 }
 
                 if(this.isAdmin && message.type === "stop-bets"){
-                    console.log("stop bets")
+                    // console.log("stop bets")
                     if(GameManager.getInstance().state === GameState.CanBet){
                         GameManager.getInstance().stopBets();
                     }
@@ -59,14 +59,15 @@ export class User {
         });
     }
 
-    flush(output : Number){
+    flush(output : Number, winners : String[]){
 
         if(this.lastWon === 0){
             this.send({
                 type : "lost",
                 balance : this.balance,
                 locked : this.locked,
-                outcome : output
+                outcome : output,
+                winners : winners
             })
         }else{
 
@@ -117,11 +118,14 @@ export class User {
         this.ws.send(JSON.stringify(payload));
     }
 
-    won(amount : number , output : Number){
+    won(amount : number , output : Number, winners : String[]){
         const wonAmmount = amount * (output === Number.Zero ? MULTIPLIER *2 : MULTIPLIER);
         this.balance += wonAmmount;
         this.locked -= amount;
         this.lastWon = wonAmmount;
+        if(this.name !== "undefined"){
+            winners.push(this.name);
+        }
     }
 
     lost(amount : number , _output : Number){

@@ -6,6 +6,7 @@ export class GameManager{
     bets : Bet[] = [];
     private static _instance : GameManager;
     private _lastWinner : Number = Number.Zero;
+    winners : String[] = [];
     private constructor(){
 
     }
@@ -51,13 +52,14 @@ export class GameManager{
         this.bets.forEach(bet=>{
             if(bet.number === output){
                 // user won
-                UserManager.getInstance().won(bet.id , bet.amount , output);
+                UserManager.getInstance().won(bet.id , bet.amount , output, this.winners);
             }else{
                 UserManager.getInstance().lost(bet.id , bet.amount , output);
             }
         });
         this.state = GameState.GameOver;
-        UserManager.getInstance().flush(output);
+        UserManager.getInstance().flush(output,this.winners);
         this.bets = [];
+        this.winners = [];
     }
 }
