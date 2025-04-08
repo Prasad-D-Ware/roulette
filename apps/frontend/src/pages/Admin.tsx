@@ -1,8 +1,7 @@
-import { Button } from "@/components/ui/button";
 import { useSocket } from "@/hooks/use-socket";
 import { cn } from "@/lib/utils";
 import { GameState, Number, OutgoingMessages } from "@repo/common/types";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 const Admin = () => {
 	const [password, setPassword] = useState("");
@@ -60,7 +59,11 @@ const AdminMain = ({ password }: { password: string }) => {
 	};
 
 	const handleSpin = () =>{
-		console.log("spin wheel for random number")
+		// console.log("spin wheel for random number")
+		const winningNum =  Math.floor(Math.random() * 37);
+		setTimeout(() => {
+			handleSelect({number : winningNum});
+		}, 5000);
 	}
 
 	useEffect(() => {
@@ -110,11 +113,11 @@ const AdminMain = ({ password }: { password: string }) => {
 					))}
 				</div>
 				<div className="flex justify-center mt-10">
-					<button className="px-6 py-2 bg-green-600 text-white text-xl font-semibold rounded-md" onClick={handleSpin}>SPIN</button>
+					<button className={`px-6 py-2 ${state === GameState.CantBet ? "bg-green-600" : "disabled bg-green-600/50 hover:cursor-not-allowed"} text-white text-xl font-semibold rounded-md`} onClick={handleSpin}>SPIN</button>
 				</div>
 			</div>
 
-			<Button
+			<button
 				onClick={() =>
 					socket.send(
 						JSON.stringify({
@@ -122,10 +125,11 @@ const AdminMain = ({ password }: { password: string }) => {
 						})
 					)
 				}
+				className={`${state === GameState.GameOver ? "bg-green-600" : "disabled bg-green-600/50 hover:cursor-not-allowed"} px-6 py-2 rounded-md text-xl font-bold text-white`}
 			>
-				Start Game {state === GameState.GameOver && "✅"}
-			</Button>
-			<Button
+				Start Game 
+			</button>
+			<button
 				onClick={() =>
 					socket.send(
 						JSON.stringify({
@@ -133,9 +137,10 @@ const AdminMain = ({ password }: { password: string }) => {
 						})
 					)
 				}
+				className={`${state === GameState.CanBet ? "bg-green-600 " : "disabled bg-green-600/50  hover:cursor-not-allowed"} px-6 py-2 rounded-md text-xl font-bold text-white`}
 			>
-				Stop Bets {state === GameState.CanBet && "✅"}
-			</Button>
+				Stop Bets 
+			</button>
 		</div>
 	);
 };
