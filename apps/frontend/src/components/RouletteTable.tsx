@@ -46,6 +46,8 @@ const RouletteTableMain = ({ name }: { name: string }) => {
 	const [bets, setBets] = useState<Map<Number, number>>(new Map());
 	const { socket, loading } = useSocket(name);
 	const [state, setState] = useState<GameState>(GameState.GameOver);
+	const [spinning, setSpinning] = useState(false);
+	const [winningNum, setWinningNum] = useState<Number>();
 
 	const numbers: Number[] = Array.from({ length: 37 }, (_, i) => i);
 	const redNumbers = [
@@ -94,7 +96,7 @@ const RouletteTableMain = ({ name }: { name: string }) => {
 			socket.onmessage = (e) => {
 				const data = e.data;
 				const parsedData: OutgoingMessages = JSON.parse(data);
-				console.log(parsedData);
+				// console.log(parsedData);
 				if (parsedData.type === "current-state") {
 					setState(parsedData.state);
 				}
@@ -109,25 +111,41 @@ const RouletteTableMain = ({ name }: { name: string }) => {
 
 				if (parsedData.type === "stop-bets") {
 					setState(GameState.CantBet);
+					setSpinning(true);
 				}
 
 				if (parsedData.type === "won") {
+					setWinningNum(parsedData.outcome);
 					toast.success(`You won ${parsedData.wonAmount}`);
 					setBalance(parsedData.balance);
 					setBets(new Map());
 					setState(GameState.GameOver);
+					setSpinning(false);
+					setTimeout(() => {
+						setWinningNum(null);
+					}, 3000);
 				}
 
 				if (parsedData.type === "lost") {
 					const winners = new Set(parsedData.winners);
-					console.log(winners);
-
-					toast.success(
-						`You lost. the Winning number was ${parsedData.outcome} and winners are : ${Array.from(winners).map((winner) => winner)}`
-					);
+					// console.log(winners);
+					setWinningNum(parsedData.outcome);
+					if (winners.size > 0) {
+						toast.success(
+							`You lost. the Winning number was ${parsedData.outcome} and winners are : ${Array.from(winners).map((winner) => winner)}`
+						);
+					} else {
+						toast.success(
+							`You lost. the Winning number was ${parsedData.outcome} and dealer wins`
+						);
+					}
 					setBalance(parsedData.balance);
 					setBets(new Map());
 					setState(GameState.GameOver);
+					setSpinning(false);
+					setTimeout(() => {
+						setWinningNum(null);
+					}, 3000);
 				}
 			};
 		}
@@ -177,18 +195,31 @@ const RouletteTableMain = ({ name }: { name: string }) => {
 			</div>
 
 			{/* Chips Selection */}
-			<div className="flex gap-4">
-				{Object.values(COINS)
-					.filter((x) => !isNaN(x as number))
-					.map((value: COINS) => (
-						<Chip
-							key={value}
-							value={value}
-							selected={selectedChip === value}
-							onClick={() => setSelectedChip(value)}
-						/>
-					))}
-			</div>
+			{spinning ? (
+				<img
+					src="/roulette-wheel.png"
+					alt="roulette wheel"
+					className="h-64 w-64 animate-spin"
+					style={{
+						animationDuration: "2s",
+					}}
+				/>
+				
+			) : (
+				<div className="flex gap-4">
+					{Object.values(COINS)
+						.filter((x) => !isNaN(x as number))
+						.map((value: COINS) => (
+							<Chip
+								key={value}
+								value={value}
+								selected={selectedChip === value}
+								onClick={() => setSelectedChip(value)}
+							/>
+						))}
+				</div>
+			)}
+			{winningNum && <div className="font-extrabold text-4xl text-green-500 animate-pulse">{winningNum}</div>}
 		</div>
 	);
 };

@@ -63,7 +63,7 @@ const AdminMain = ({ password }: { password: string }) => {
 		const winningNum =  Math.floor(Math.random() * 37);
 		setTimeout(() => {
 			handleSelect({number : winningNum});
-		}, 5000);
+		}, 3000);
 	}
 
 	useEffect(() => {
